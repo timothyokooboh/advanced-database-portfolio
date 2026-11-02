@@ -1,0 +1,129 @@
+erDiagram
+    BRANCH ||--o{ INVENTORY : holds
+    CATEGORY ||--o{ PRODUCT : classifies
+    PRODUCT ||--o{ INVENTORY : stocked_as
+    CUSTOMER ||--o{ CUSTOMER_ADDRESS : stores
+    CUSTOMER ||--o{ SALES_ORDER : places
+    BRANCH ||--o{ SALES_ORDER : fulfils
+    CUSTOMER_ADDRESS o|--o{ SALES_ORDER : delivers_to
+    SALES_ORDER ||--|{ ORDER_ITEM : contains
+    PRODUCT ||--o{ ORDER_ITEM : appears_in
+    SALES_ORDER ||--o{ PAYMENT : has
+    SALES_ORDER ||--o| FULFILMENT : progresses_through
+
+    BRANCH {
+        bigint branch_id PK
+        varchar branch_code UK
+        varchar name
+        varchar phone
+        varchar email UK
+        varchar address_line
+        varchar city
+        varchar state
+        boolean is_active
+        timestamptz created_at
+    }
+
+    CATEGORY {
+        bigint category_id PK
+        varchar name UK
+        text description
+        boolean is_active
+        timestamptz created_at
+    }
+
+    PRODUCT {
+        bigint product_id PK
+        bigint category_id FK
+        varchar sku UK
+        varchar name
+        text description
+        numeric current_price
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    INVENTORY {
+        bigint branch_id PK,FK
+        bigint product_id PK,FK
+        integer quantity_on_hand
+        integer reorder_level
+        timestamptz last_counted_at
+        timestamptz updated_at
+    }
+
+    CUSTOMER {
+        bigint customer_id PK
+        varchar first_name
+        varchar last_name
+        varchar email UK
+        varchar phone UK
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    CUSTOMER_ADDRESS {
+        bigint address_id PK
+        bigint customer_id FK
+        varchar label
+        varchar address_line_1
+        varchar address_line_2
+        varchar city
+        varchar state
+        varchar postal_code
+        varchar country
+        boolean is_default
+        timestamptz created_at
+    }
+
+    SALES_ORDER {
+        bigint order_id PK
+        varchar order_number UK
+        bigint customer_id FK
+        bigint branch_id FK
+        bigint delivery_address_id FK
+        varchar order_channel
+        varchar fulfilment_method
+        varchar order_status
+        numeric subtotal
+        numeric delivery_fee
+        numeric discount_amount
+        numeric grand_total
+        timestamptz placed_at
+        timestamptz updated_at
+    }
+
+    ORDER_ITEM {
+        bigint order_item_id PK
+        bigint order_id FK
+        bigint product_id FK
+        integer quantity
+        numeric unit_price
+        numeric line_total
+        timestamptz created_at
+    }
+
+    PAYMENT {
+        bigint payment_id PK
+        bigint order_id FK
+        varchar provider
+        varchar provider_reference UK
+        numeric amount
+        varchar payment_status
+        varchar payment_method
+        timestamptz attempted_at
+        timestamptz completed_at
+    }
+
+    FULFILMENT {
+        bigint fulfilment_id PK
+        bigint order_id FK,UK
+        varchar fulfilment_status
+        varchar tracking_reference UK
+        timestamptz ready_at
+        timestamptz dispatched_at
+        timestamptz completed_at
+        timestamptz updated_at
+    }

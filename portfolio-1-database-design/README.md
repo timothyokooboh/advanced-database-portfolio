@@ -9,6 +9,8 @@ This portfolio defines the relational foundation for AsterMart Retail & Fulfilme
 - [Relational schema](schema/001_relational_schema.sql)
 - Data dictionary and normalization analysis are added as the next focused part of this milestone.
 
+The Mermaid source can be rendered directly by GitHub or with the Mermaid CLI. The model uses crow's-foot cardinality: `||` means exactly one, `o|` zero or one, `o{` zero or many, and `|{` one or many.
+
 ## Design boundaries
 
 The model covers product cataloguing, branch stock, customer addresses, sales orders, payments, and fulfilment. Promotions, suppliers, procurement, returns, and accounting are deliberately outside the first release so the portfolio remains deep enough to analyse without becoming unfocused.
