@@ -12,7 +12,7 @@ The portfolio uses PostgreSQL for structured operational data and MongoDB for da
 
 | Portfolio | Focus | Status |
 | --- | --- | --- |
-| 1 | Database design and modelling | In progress |
+| 1 | Database design and modelling | Complete |
 | 2 | Query processing and optimisation | Planned |
 | 3 | Transactions and concurrency | Planned |
 | 4 | NoSQL and advanced data models | Planned |
