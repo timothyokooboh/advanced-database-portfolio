@@ -1,3 +1,33 @@
-# Advanced Database Portfolio
+# Advanced Database Systems Portfolio
 
-MIT 8103 Advanced Database Systems portfolio based on the simulated AsterMart Retail & Fulfilment Ltd. case study.
+This repository contains the practical portfolio for **MIT 8103 - Advanced Database Systems**. It applies relational, NoSQL, transactional, optimisation, and distributed database concepts to one consistent simulated organisation.
+
+## Selected organisation
+
+**AsterMart Retail & Fulfilment Ltd.** is a simulated Nigerian multi-branch retailer. Customers can shop online, pay electronically, and request home delivery or branch pickup. Staff manage products, branch inventory, orders, payments, and fulfilment.
+
+The portfolio uses PostgreSQL for structured operational data and MongoDB for data whose shape or access pattern benefits from a document model. All names and records used in the project are fictional.
+
+## Portfolio roadmap
+
+| Portfolio | Focus | Status |
+| --- | --- | --- |
+| 1 | Database design and modelling | In progress |
+| 2 | Query processing and optimisation | Planned |
+| 3 | Transactions and concurrency | Planned |
+| 4 | NoSQL and advanced data models | Planned |
+| 5 | Distributed and cloud databases | Planned |
+
+## Repository structure
+
+```text
+advanced-database-portfolio/
+|-- portfolio-1-database-design/
+|-- portfolio-2-query-optimisation/       # added in a later milestone
+|-- portfolio-3-transactions-concurrency/ # added in a later milestone
+|-- portfolio-4-nosql/                    # added in a later milestone
+|-- portfolio-5-distributed-cloud/        # added in a later milestone
+`-- README.md
+```
+
+Each portfolio directory contains its implementation evidence and a README explaining the design, commands, tests, and observations.
