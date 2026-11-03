@@ -1,0 +1,82 @@
+AsterMart PostgreSQL 16.15 - baseline EXPLAIN (ANALYZE, BUFFERS)
+Captured: 2026-11-03, before custom performance indexes
+Dataset: 60,000 orders; 180,000 order items; 60,000 payments
+
+Q1: Recent order history for one customer
+Limit  (cost=2935.02..2935.03 rows=3 width=44) (actual time=3.695..3.696 rows=3 loops=1)
+  Buffers: shared hit=2188
+  ->  Sort  (cost=2935.02..2935.03 rows=3 width=44) (actual time=3.694..3.695 rows=3 loops=1)
+        Sort Key: placed_at DESC
+        Sort Method: quicksort  Memory: 25kB
+        ->  Seq Scan on sales_order  (cost=0.00..2935.00 rows=3 width=44) (actual time=1.426..3.669 rows=3 loops=1)
+              Filter: (customer_id = 12345)
+              Rows Removed by Filter: 59997
+              Buffers: shared hit=2185
+Planning Time: 0.581 ms
+Execution Time: 6.972 ms
+
+Q2: Processing workload for a branch and reporting period
+Sort  (cost=3390.29..3390.66 rows=147 width=43) (actual time=4.000..4.003 rows=100 loops=1)
+  Sort Key: placed_at DESC
+  Sort Method: quicksort  Memory: 32kB
+  Buffers: shared hit=2185
+  ->  Seq Scan on sales_order  (cost=0.00..3385.00 rows=147 width=43) (actual time=0.340..3.984 rows=100 loops=1)
+        Filter: ((placed_at >= '2026-09-01 00:00:00+01'::timestamptz)
+          AND (placed_at < '2026-10-01 00:00:00+01'::timestamptz)
+          AND (branch_id = 3) AND (order_status = 'processing'))
+        Rows Removed by Filter: 59900
+        Buffers: shared hit=2185
+Planning Time: 0.066 ms
+Execution Time: 4.017 ms
+
+Q3: Sales summary for a selected product
+GroupAggregate  (cost=5532.94..5574.37 rows=1 width=56) (actual time=6.967..7.988 rows=1 loops=1)
+  Buffers: shared hit=2690 read=207
+  ->  Gather Merge  (cost=5532.94..5571.80 rows=341 width=26) (actual time=6.912..7.953 rows=360 loops=1)
+        Workers Planned: 1
+        Workers Launched: 1
+        ->  Sort  (cost=4532.93..4533.43 rows=201 width=26) (actual time=5.360..5.364 rows=180 loops=2)
+              Sort Key: oi.order_id
+              ->  Nested Loop  (cost=0.29..4525.24 rows=201 width=26) (actual time=0.040..5.302 rows=180 loops=2)
+                    ->  Parallel Seq Scan on order_item oi  (cost=0.00..3131.53 rows=211 width=26) (actual time=0.021..3.623 rows=180 loops=2)
+                          Filter: (product_id = 42)
+                          Rows Removed by Filter: 89820
+                          Buffers: shared hit=1808
+                    ->  Index Scan using sales_order_pkey on sales_order o  (cost=0.29..6.61 rows=1 width=8) (actual time=0.009..0.009 rows=1 loops=360)
+                          Index Cond: (order_id = oi.order_id)
+                          Filter: (order_status <> 'cancelled')
+Planning Time: 1.335 ms
+Execution Time: 8.029 ms
+
+Q4: Successful payments completed in a reconciliation window
+Sort  (cost=1964.56..1964.57 rows=3 width=56) (actual time=3.175..3.176 rows=3 loops=1)
+  Sort Key: (sum(amount)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  ->  HashAggregate  (cost=1964.50..1964.54 rows=3 width=56) (actual time=3.162..3.163 rows=3 loops=1)
+        Group Key: provider
+        ->  Seq Scan on payment  (cost=0.00..1957.00 rows=1000 width=23) (actual time=0.004..3.031 rows=1200 loops=1)
+              Filter: ((completed_at >= '2026-10-01 00:00:00+01'::timestamptz)
+                AND (completed_at < '2026-10-08 00:00:00+01'::timestamptz)
+                AND (payment_status = 'successful'))
+              Rows Removed by Filter: 58800
+              Buffers: shared hit=907
+Planning Time: 0.161 ms
+Execution Time: 3.205 ms
+
+Q5: Low-stock products at one branch
+Sort  (cost=82.15..82.57 rows=167 width=49) (actual time=0.704..0.706 rows=75 loops=1)
+  Sort Key: i.quantity_on_hand, p.sku
+  Sort Method: quicksort  Memory: 30kB
+  ->  Hash Join  (cost=59.66..75.98 rows=167 width=49) (actual time=0.640..0.679 rows=75 loops=1)
+        Hash Cond: (p.product_id = i.product_id)
+        ->  Seq Scan on product p  (cost=0.00..15.00 rows=500 width=41) (actual time=0.001..0.022 rows=500 loops=1)
+        ->  Hash  (cost=57.57..57.57 rows=167 width=16) (actual time=0.634..0.634 rows=75 loops=1)
+              ->  Bitmap Heap Scan on inventory i  (cost=16.07..57.57 rows=167 width=16) (actual time=0.545..0.622 rows=75 loops=1)
+                    Recheck Cond: (branch_id = 3)
+                    Filter: (quantity_on_hand <= reorder_level)
+                    Rows Removed by Filter: 425
+                    Heap Blocks: exact=34
+                    ->  Bitmap Index Scan on inventory_pkey  (cost=0.00..16.03 rows=500 width=0) (actual time=0.538..0.538 rows=500 loops=1)
+                          Index Cond: (branch_id = 3)
+Planning Time: 1.243 ms
+Execution Time: 0.728 ms
