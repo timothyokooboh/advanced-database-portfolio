@@ -1,0 +1,65 @@
+AsterMart PostgreSQL 16.15 - indexed EXPLAIN (ANALYZE, BUFFERS)
+Captured: 2026-11-03, after indexes/001_performance_indexes.sql
+Dataset: 60,000 orders; 180,000 order items; 60,000 payments
+
+Q1: Recent order history for one customer
+Limit  (cost=0.41..4.47 rows=3 width=44) (actual time=0.034..0.035 rows=3 loops=1)
+  Buffers: shared hit=4 read=3
+  ->  Index Only Scan using idx_sales_order_customer_placed on sales_order  (cost=0.41..4.47 rows=3 width=44) (actual time=0.034..0.034 rows=3 loops=1)
+        Index Cond: (customer_id = 12345)
+        Heap Fetches: 0
+        Buffers: shared hit=4 read=3
+Planning Time: 0.685 ms
+Execution Time: 0.081 ms
+
+Q2: Processing workload for a branch and reporting period
+Index Only Scan using idx_sales_order_branch_status_placed on sales_order  (cost=0.41..12.19 rows=151 width=43) (actual time=0.017..0.026 rows=100 loops=1)
+  Index Cond: ((branch_id = 3) AND (order_status = 'processing')
+    AND (placed_at >= '2026-09-01 00:00:00+01'::timestamptz)
+    AND (placed_at < '2026-10-01 00:00:00+01'::timestamptz))
+  Heap Fetches: 0
+  Buffers: shared hit=1 read=4
+Planning Time: 0.043 ms
+Execution Time: 0.034 ms
+
+Q3: Sales summary for a selected product
+GroupAggregate  (cost=0.71..2388.23 rows=1 width=56) (actual time=1.081..1.081 rows=1 loops=1)
+  Buffers: shared hit=1081 read=6
+  ->  Nested Loop  (cost=0.71..2385.67 rows=340 width=26) (actual time=0.022..1.046 rows=360 loops=1)
+        ->  Index Only Scan using idx_order_item_product_order on order_item oi  (cost=0.42..18.69 rows=358 width=26) (actual time=0.012..0.034 rows=360 loops=1)
+              Index Cond: (product_id = 42)
+              Heap Fetches: 0
+              Buffers: shared hit=1 read=6
+        ->  Index Scan using sales_order_pkey on sales_order o  (cost=0.29..6.61 rows=1 width=8) (actual time=0.003..0.003 rows=1 loops=360)
+              Index Cond: (order_id = oi.order_id)
+              Filter: (order_status <> 'cancelled')
+              Buffers: shared hit=1080
+Planning Time: 0.295 ms
+Execution Time: 1.118 ms
+
+Q4: Successful payments completed in a reconciliation window
+Sort  (cost=62.89..62.90 rows=3 width=56) (actual time=0.185..0.185 rows=3 loops=1)
+  Sort Key: (sum(amount)) DESC
+  ->  HashAggregate  (cost=62.83..62.87 rows=3 width=56) (actual time=0.176..0.176 rows=3 loops=1)
+        Group Key: provider
+        ->  Index Only Scan using idx_payment_successful_completed on payment  (cost=0.41..54.54 rows=1106 width=23) (actual time=0.016..0.085 rows=1200 loops=1)
+              Index Cond: ((completed_at >= '2026-10-01 00:00:00+01'::timestamptz)
+                AND (completed_at < '2026-10-08 00:00:00+01'::timestamptz))
+              Heap Fetches: 0
+              Buffers: shared hit=1 read=11
+Planning Time: 0.212 ms
+Execution Time: 0.198 ms
+
+Q5: Low-stock products at one branch
+Sort  (cost=35.77..36.19 rows=167 width=49) (actual time=0.089..0.091 rows=75 loops=1)
+  Sort Key: i.quantity_on_hand, p.sku
+  ->  Hash Join  (cost=13.29..29.61 rows=167 width=49) (actual time=0.035..0.066 rows=75 loops=1)
+        Hash Cond: (p.product_id = i.product_id)
+        ->  Seq Scan on product p  (cost=0.00..15.00 rows=500 width=41) (actual time=0.002..0.018 rows=500 loops=1)
+        ->  Hash  (cost=11.20..11.20 rows=167 width=16) (actual time=0.026..0.027 rows=75 loops=1)
+              ->  Index Only Scan using idx_inventory_low_stock on inventory i  (cost=0.28..11.20 rows=167 width=16) (actual time=0.014..0.019 rows=75 loops=1)
+                    Index Cond: (branch_id = 3)
+                    Heap Fetches: 0
+                    Buffers: shared hit=1 read=3
+Planning Time: 0.285 ms
+Execution Time: 0.112 ms

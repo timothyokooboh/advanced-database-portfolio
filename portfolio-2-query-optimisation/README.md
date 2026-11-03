@@ -69,3 +69,32 @@ Each query uses `EXPLAIN (ANALYZE, BUFFERS)`, which executes the statement and r
 ```
 
 The captured unindexed plans are preserved in [`evidence/before-indexes.txt`](evidence/before-indexes.txt). They show sequential scans of all 60,000 orders for Q1 and Q2, a parallel sequential scan of all 180,000 order items for Q3, and a scan of all 60,000 payments for Q4. Q5 already benefits from the inventory primary key's `branch_id` prefix, but still reads 500 branch rows and filters 425 of them after the bitmap scan.
+
+Apply the workload-specific indexes after capturing a baseline:
+
+```bash
+docker compose exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U astermart_user -d astermart \
+  < portfolio-2-query-optimisation/indexes/001_performance_indexes.sql
+```
+
+The index definitions use equality columns before range/sort columns. `INCLUDE` columns allow index-only plans without making those output fields part of the search key. Partial indexes for Q4 and Q5 exclude rows that the corresponding operational reports never need, reducing index size and maintenance compared with indexing every payment or inventory row.
+
+## Evidence and findings
+
+- [`evidence/query-results.txt`](evidence/query-results.txt) records reproducible business-query results.
+- [`evidence/before-indexes.txt`](evidence/before-indexes.txt) preserves the baseline plans.
+- [`evidence/after-indexes.txt`](evidence/after-indexes.txt) preserves the optimized plans.
+- [`docs/performance-analysis.md`](docs/performance-analysis.md) compares plan shape, runtime, buffer activity, storage cost, and trade-offs.
+
+In this run, all five queries became faster while producing the same results. The largest measured change was Q2, from 4.017 ms to 0.034 ms, because its composite index replaced a 60,000-row sequential scan with a targeted index-only range scan. These timings describe this test environment and are not presented as universal production guarantees.
+
+Run the dataset integrity checks after applying the indexes:
+
+```bash
+docker compose exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U astermart_user -d astermart \
+  < portfolio-2-query-optimisation/tests/001_validate_dataset.sql
+```
+
+The test fails on incorrect core row counts, order/subtotal disagreement, payment/total disagreement, or a missing workload index.

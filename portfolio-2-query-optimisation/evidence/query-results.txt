@@ -1,0 +1,36 @@
+AsterMart benchmark query results
+Captured: 2026-11-03 from the deterministic local dataset
+
+Q1 - customer 12345 recent order history
+order_number          order_status  grand_total  placed_at
+ORD-20260902-032345   ready         106144.00    2026-09-02 13:35:00+01
+ORD-20260525-052345   ready         106144.00    2026-05-25 18:55:00+01
+ORD-20260214-012345   ready         106144.00    2026-02-14 08:15:00+01
+3 rows
+
+Q2 - branch 3 September processing workload summary
+matching_orders  first_order                 last_order                  workload_value
+100              2026-09-20 09:41:00+01     2026-09-20 19:41:00+01     12583200.00
+
+Q3 - product 42 sales summary
+product_id  order_count  units_sold  sales_value
+42          360          1440        9005760.00
+
+Q4 - successful-payment reconciliation window
+provider                 payment_count  settled_amount
+Paystack Demo            400            63605000.00
+Flutterwave Demo         400            62146600.00
+AsterMart POS Demo       400            54703400.00
+
+Q5 - first 10 low-stock products at branch 3
+product_id  sku             name                    on_hand  reorder_level
+33          AST-PRD-00033   Fresh Food Item 033     0        26
+273         AST-PRD-00273   Fresh Food Item 273     0        26
+70          AST-PRD-00070   Pet Care Item 070       1        33
+310         AST-PRD-00310   Pet Care Item 310       1        33
+107         AST-PRD-00107   Health Item 107         2        40
+347         AST-PRD-00347   Health Item 347         2        40
+144         AST-PRD-00144   Household Item 144      3        47
+384         AST-PRD-00384   Household Item 384      3        47
+181         AST-PRD-00181   Grocery Item 181        4        24
+421         AST-PRD-00421   Grocery Item 421        4        24
