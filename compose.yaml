@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: astermart-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-astermart}
+      POSTGRES_USER: ${POSTGRES_USER:-astermart_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astermart_dev_password}
+      TZ: Africa/Lagos
+      PGTZ: Africa/Lagos
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - astermart_postgres_data:/var/lib/postgresql/data
+      - ./portfolio-1-database-design/schema/001_relational_schema.sql:/docker-entrypoint-initdb.d/001_relational_schema.sql:ro
+      - ./portfolio-2-query-optimisation/data/002_seed_data.sql:/docker-entrypoint-initdb.d/002_seed_data.sql:ro
+
+volumes:
+  astermart_postgres_data:
