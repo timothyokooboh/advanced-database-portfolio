@@ -14,7 +14,7 @@ The portfolio uses PostgreSQL for structured operational data and MongoDB for da
 | --- | --- | --- |
 | 1 | Database design and modelling | Complete |
 | 2 | Query processing and optimisation | Complete |
-| 3 | Transactions and concurrency | Planned |
+| 3 | Transactions and concurrency | In progress |
 | 4 | NoSQL and advanced data models | Planned |
 | 5 | Distributed and cloud databases | Planned |
 
@@ -24,7 +24,7 @@ The portfolio uses PostgreSQL for structured operational data and MongoDB for da
 advanced-database-portfolio/
 |-- portfolio-1-database-design/
 |-- portfolio-2-query-optimisation/
-|-- portfolio-3-transactions-concurrency/ # added in a later milestone
+|-- portfolio-3-transactions-concurrency/
 |-- portfolio-4-nosql/                    # added in a later milestone
 |-- portfolio-5-distributed-cloud/        # added in a later milestone
 `-- README.md
