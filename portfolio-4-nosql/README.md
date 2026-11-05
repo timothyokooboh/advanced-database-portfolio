@@ -37,3 +37,26 @@ For non-default credentials, use the values in the local uncommitted `.env` file
 - `mongodb/tests/`: executable validation of counts, indexes, and document diversity.
 - `docs/`: model and suitability analysis.
 - `evidence/`: captured local outputs.
+
+## Execute queries and validation
+
+Run the query workload:
+
+```bash
+docker compose exec -T mongodb mongosh --quiet \
+  --username astermart_admin \
+  --password astermart_mongo_dev_password \
+  --authenticationDatabase admin \
+  --file /dev/stdin astermart_catalog \
+  < portfolio-4-nosql/mongodb/queries/001_catalog_queries.js
+```
+
+Run the automated model checks with the same command, replacing the redirected file with `portfolio-4-nosql/mongodb/tests/001_validate_model.js`.
+
+The captured evidence shows flexible category attributes, embedded branch availability, category aggregation, an ordered event timeline, strict validation, and indexed access. For the category/price query, MongoDB used `idx_category_price` and examined 32 keys and 32 documents to return 32 matches.
+
+## Evidence
+
+- [`evidence/query-output.txt`](evidence/query-output.txt): representative results and explain statistics.
+- [`evidence/validation-output.txt`](evidence/validation-output.txt): executable validation result.
+- [`docs/document-model-and-suitability.md`](docs/document-model-and-suitability.md): modelling rationale, consistency boundary, and trade-offs.

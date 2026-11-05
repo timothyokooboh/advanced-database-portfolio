@@ -1,0 +1,53 @@
+AsterMart MongoDB 7.0.45 query evidence
+Captured: 2026-11-05
+Dataset: 500 product documents and 5,000 order-event documents
+
+Q1 - Electronics with at least a 12-month warranty (first five by price)
+sku             name                    price       warrantyMonths  powerWatts
+AST-PRD-00368   Electronics Item 368    1416.00     18              50
+AST-PRD-00008   Electronics Item 008    1596.00     18              50
+AST-PRD-00388   Electronics Item 388    4156.00     12              50
+AST-PRD-00028   Electronics Item 028    4336.00     12              50
+AST-PRD-00398   Electronics Item 398    5526.00     18              50
+
+Q2 - Products with 30 units or fewer at branch 3 (first five)
+sku             name                    branch       quantity  reorderLevel
+AST-PRD-00033   Fresh Food Item 033     AST-ABJ01    0         26
+AST-PRD-00273   Fresh Food Item 273     AST-ABJ01    0         26
+AST-PRD-00070   Pet Care Item 070       AST-ABJ01    1         33
+AST-PRD-00310   Pet Care Item 310       AST-ABJ01    1         33
+AST-PRD-00107   Health Item 107         AST-ABJ01    2         40
+
+Q3 - Category aggregation summary
+category         productCount  minimumPrice  maximumPrice  averagePrice
+Baby Care        50            1142.00       49272.00      21027.00
+Beverages        50             594.00       48724.00      20479.00
+Electronics      50            1416.00       49546.00      21301.00
+Fresh Food       50             731.00       48861.00      20616.00
+Groceries        50             637.00       49957.00      21332.00
+Health           50            1279.00       49409.00      21164.00
+Household        50             868.00       48998.00      20753.00
+Personal Care    50            1005.00       49135.00      20890.00
+Pet Care         50            1690.00       49820.00      21575.00
+Stationery       50            1553.00       49683.00      21438.00
+
+Q4 - Timeline for ORD-20260101-000001
+08:00  EVT-00000001  ORDER_PLACED       customer  channel=online, itemCount=3
+09:00  EVT-00000002  PAYMENT_CONFIRMED  system    provider=Demo Provider, method=transfer
+10:00  EVT-00000003  PICKING_STARTED    staff     branchId=1
+11:00  EVT-00000004  DISPATCHED         courier   trackingReference=TRK-DEMO-00000001
+12:00  EVT-00000005  COMPLETED          customer  receivedBy=customer
+
+Q5 - executionStats for Electronics priced at or below 25,000
+winning access stage: IXSCAN
+index: idx_category_price
+key pattern: { "category.name": 1, price: 1 }
+index bounds: category.name = Electronics; price = [-infinity, 25000.00]
+nReturned: 32
+totalKeysExamined: 32
+totalDocsExamined: 32
+executionSuccess: true
+
+Interpretation: the compound index bounded both predicates and avoided scanning
+the other 468 product documents. A FETCH remained necessary because the query
+projected fields that were not stored in the index.

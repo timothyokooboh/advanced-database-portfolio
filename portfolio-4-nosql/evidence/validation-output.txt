@@ -1,0 +1,19 @@
+AsterMart MongoDB model validation
+Captured: 2026-11-05 using MongoDB 7.0.45
+
+{
+  result: 'PASS',
+  checks: 'counts, flexible attributes, event timeline, indexes, and schema validation',
+  products: 500,
+  orderEvents: 5000
+}
+
+Validated conditions:
+- exactly 500 product documents and 5,000 order events;
+- 10 product categories;
+- 50 Electronics documents with warrantyMonths;
+- 50 Beverage documents with volumeMl;
+- five ordered lifecycle events for the sample order;
+- _id plus five product indexes;
+- _id plus three event indexes;
+- strict schema validation rejected an invalid SKU and negative price.
