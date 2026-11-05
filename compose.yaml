@@ -20,5 +20,31 @@ services:
       - ./portfolio-1-database-design/schema/001_relational_schema.sql:/docker-entrypoint-initdb.d/001_relational_schema.sql:ro
       - ./portfolio-2-query-optimisation/data/002_seed_data.sql:/docker-entrypoint-initdb.d/002_seed_data.sql:ro
 
+  mongodb:
+    image: mongo:7
+    container_name: astermart-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-astermart_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-astermart_mongo_dev_password}
+      MONGO_INITDB_DATABASE: astermart_catalog
+      TZ: Africa/Lagos
+    ports:
+      - "${MONGO_PORT:-27018}:27017"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --username "$${MONGO_INITDB_ROOT_USERNAME}"
+          --password "$${MONGO_INITDB_ROOT_PASSWORD}"
+          --authenticationDatabase admin
+          --eval 'db.adminCommand("ping").ok' admin
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - astermart_mongodb_data:/data/db
+      - ./portfolio-4-nosql/mongodb/init/001_catalog_model.js:/docker-entrypoint-initdb.d/001_catalog_model.js:ro
+
 volumes:
   astermart_postgres_data:
+  astermart_mongodb_data:
