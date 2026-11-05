@@ -21,3 +21,21 @@ docker compose exec -T postgres \
 ```
 
 The function accepts an order header and a JSON array of product/quantity pairs. It validates the request, locks inventory rows in ascending product order, snapshots catalogue prices, inserts the order and lines, and deducts inventory. An exception aborts the complete statement, so partial orders and partial stock deductions cannot remain.
+
+## Execute the demonstrations
+
+```bash
+docker compose exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U astermart_user -d astermart \
+  < portfolio-3-transactions-concurrency/sql/002_commit_rollback_demo.sql
+
+./portfolio-3-transactions-concurrency/scripts/run_concurrency_demo.sh
+```
+
+The concurrency script safely resets only two named demonstration orders and one fictional inventory record, starts both sessions, asserts that Session B fails, and prints the final database state. Run its postcondition checks with:
+
+```bash
+docker compose exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U astermart_user -d astermart \
+  < portfolio-3-transactions-concurrency/tests/001_validate_transaction_demo.sql
+```

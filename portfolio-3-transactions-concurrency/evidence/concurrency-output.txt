@@ -1,0 +1,35 @@
+AsterMart PostgreSQL 16.15 scarce-stock concurrency demonstration
+Captured: 2026-11-05
+Initial state: branch 8/product 499 had 5 units; both sessions requested 4.
+
+--- SESSION A: COMMIT ---
+BEGIN
+ session_a_locked_quantity
+---------------------------
+                         5
+
+Session A held the row lock for approximately 2 seconds.
+
+ session_a_order_id
+--------------------
+              60001
+
+COMMIT
+
+--- SESSION B: ROLLBACK ON EXCEPTION ---
+ERROR: Insufficient stock for product 499 at branch 8:
+       requested 4, available 1
+CONTEXT: PL/pgSQL function place_order(...) at RAISE
+Elapsed time: approximately 1.808 seconds, including the wait for Session A.
+
+--- FINAL DATABASE STATE ---
+ branch_id | product_id | final_quantity
+-----------+------------+---------------
+         8 |        499 |              1
+
+    order_number     | order_status | grand_total
+---------------------+--------------+------------
+ ORD-20261105-900001 | confirmed    |    77452.00
+
+Only Session A's order exists. Session B inserted no order or order item and
+made no inventory deduction. The inventory constraint remains satisfied.

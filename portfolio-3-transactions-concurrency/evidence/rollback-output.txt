@@ -1,0 +1,25 @@
+AsterMart PostgreSQL 16.15 rollback demonstration
+Captured: 2026-11-05
+
+Value before transaction
+ branch_id | product_id | quantity_on_hand
+-----------+------------+-----------------
+         8 |        499 |              143
+
+BEGIN
+UPDATE 1
+
+Value visible inside the transaction before rollback
+ branch_id | product_id | quantity_on_hand
+-----------+------------+-----------------
+         8 |        499 |              141
+
+ROLLBACK
+
+Value after rollback - restored to the original value
+ branch_id | product_id | quantity_on_hand
+-----------+------------+-----------------
+         8 |        499 |              143
+
+Observation: the two-unit deduction was visible to its own transaction but did
+not persist after ROLLBACK, demonstrating atomicity and transaction isolation.
