@@ -1,0 +1,55 @@
+services:
+  postgres-primary:
+    image: postgres:16-alpine
+    container_name: astermart-distributed-primary
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: astermart_distributed
+      POSTGRES_USER: astermart_admin
+      POSTGRES_PASSWORD: distributed_admin_dev_password
+      TZ: Africa/Lagos
+      PGTZ: Africa/Lagos
+    ports:
+      - "5441:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astermart_admin -d astermart_distributed"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - astermart_distributed_primary:/var/lib/postgresql/data
+      - ./portfolio-5-distributed-cloud/postgresql/primary/001_primary.sql:/docker-entrypoint-initdb.d/001_primary.sql:ro
+
+  postgres-subscriber:
+    image: postgres:16-alpine
+    container_name: astermart-distributed-subscriber
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: astermart_distributed
+      POSTGRES_USER: astermart_admin
+      POSTGRES_PASSWORD: distributed_admin_dev_password
+      TZ: Africa/Lagos
+      PGTZ: Africa/Lagos
+    ports:
+      - "5442:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astermart_admin -d astermart_distributed"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - astermart_distributed_subscriber:/var/lib/postgresql/data
+      - ./portfolio-5-distributed-cloud/postgresql/subscriber/001_subscriber.sql:/docker-entrypoint-initdb.d/001_subscriber.sql:ro
+
+volumes:
+  astermart_distributed_primary:
+  astermart_distributed_subscriber:
