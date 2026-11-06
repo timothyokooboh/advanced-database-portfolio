@@ -41,3 +41,15 @@ docker compose -f compose.distributed.yaml down -v
 - `scripts/`: repeatable orchestration and verification.
 - `evidence/`: captured replication and access-control output.
 - `docs/`: distributed/cloud design, availability, consistency, and limitations.
+
+## Verified outcome
+
+The captured run is stored in [`evidence/replication-output.txt`](evidence/replication-output.txt). It shows:
+
+- three pre-existing rows copied during initial synchronization;
+- one subsequent `AST-ENU01` summary replicated incrementally;
+- matching publisher/subscriber values;
+- an active receive/apply state in `pg_stat_subscription`;
+- rejection of an `INSERT` attempted by the reporting role.
+
+[`docs/distributed-cloud-analysis.md`](docs/distributed-cloud-analysis.md) explains consistency, availability, sharding, cloud deployment, monitoring, security, and the limits of the demonstration.

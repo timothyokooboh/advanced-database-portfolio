@@ -1,0 +1,30 @@
+AsterMart PostgreSQL 16 logical replication evidence
+Captured: 2026-11-06, Africa/Lagos
+
+CREATE SUBSCRIPTION astermart_reporting_sub
+NOTICE: created replication slot "astermart_reporting_sub" on publisher
+
+PUBLISHER ROWS
+summary_id  branch_code  summary_date  order_count  revenue
+1           AST-LAG01    2026-11-01    142          18345000.00
+2           AST-ABJ01    2026-11-01     98          12780000.00
+3           AST-PHC01    2026-11-01     76           9355000.00
+900001      AST-ENU01    2026-11-05     87          10875000.00
+
+SUBSCRIBER ROWS
+summary_id  branch_code  summary_date  order_count  revenue
+1           AST-LAG01    2026-11-01    142          18345000.00
+2           AST-ABJ01    2026-11-01     98          12780000.00
+3           AST-PHC01    2026-11-01     76           9355000.00
+900001      AST-ENU01    2026-11-05     87          10875000.00
+
+SUBSCRIPTION MONITORING
+subname: astermart_reporting_sub
+receiving: true
+applied: true
+latest_end_time: 2026-11-06 19:51:32.730618+01
+
+READ-ONLY ROLE TEST
+ERROR: cannot execute INSERT in a read-only transaction
+
+PASS: initial copy, incremental replication, monitoring, and read-only access verified
