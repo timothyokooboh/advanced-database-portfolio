@@ -31,3 +31,28 @@ advanced-database-portfolio/
 ```
 
 Each portfolio directory contains its implementation evidence and a README explaining the design, commands, tests, and observations.
+
+## Final documentation
+
+- [LMS portfolio documentation](output/pdf/Okooboh_Timothy_301915902_Portfolio_Documentation.pdf) - verified three-page A4 PDF.
+- [Editable summary source](final-documentation/Okooboh_Timothy_301915902_Portfolio_Summary.md).
+- [AI use declaration](AI_USE_DECLARATION.md).
+- [References](REFERENCES.md).
+- [Final submission checklist](FINAL_SUBMISSION_CHECKLIST.md).
+
+## Local execution
+
+Start the PostgreSQL and MongoDB portfolio databases:
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+Run the isolated logical-replication exercise:
+
+```bash
+./portfolio-5-distributed-cloud/scripts/setup_and_verify_replication.sh
+```
+
+Every portfolio README contains its exact commands, expected evidence, and validation steps. Credentials in the Compose files are development-only defaults; `.env` is ignored by Git.
