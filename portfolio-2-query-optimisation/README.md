@@ -50,7 +50,7 @@ docker compose up -d
 
 Names, emails, telephone numbers, order references, and payment references are generated fictional test data. The generator is deterministic so another assessor can reproduce the same row counts and query results.
 
-Query scripts, before/after plans, index definitions, and performance analysis are added in the next focused parts of this milestone.
+The repository includes query scripts, before/after plans, index definitions, and performance analysis for this dataset.
 
 ## Benchmark workload
 

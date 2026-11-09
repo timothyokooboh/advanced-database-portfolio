@@ -1,3 +1,5 @@
+import html
+import re
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -20,8 +22,43 @@ from reportlab.platypus import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / "final-documentation" / "Okooboh_Timothy_301915902_Portfolio_Summary.md"
 OUTPUT = ROOT / "output" / "pdf" / "Okooboh_Timothy_301915902_Portfolio_Documentation.pdf"
 OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+
+
+def parse_markdown(path):
+    metadata = {}
+    sections = {}
+    current = None
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if line.startswith("**") and ":**" in line:
+            key, value = line.split(":**", 1)
+            metadata[key.strip("* ").lower()] = value.strip()
+        elif line.startswith("## "):
+            current = line[3:]
+            sections[current] = []
+        elif line.startswith("### "):
+            current = line[4:]
+            sections[current] = []
+        elif current and line:
+            sections[current].append(line)
+    return metadata, sections
+
+
+def inline_markup(text):
+    text = html.escape(text, quote=False)
+    text = re.sub(r"`([^`]+)`", r"<b>\1</b>", text)
+    text = re.sub(r"\*([^*]+)\*", r"<i>\1</i>", text)
+    return text
+
+
+def prose(section):
+    return [inline_markup(line) for line in MARKDOWN_SECTIONS[section] if not line.startswith(("- ", "1. ", "2. ", "3. ", "4. "))]
+
+
+MARKDOWN_METADATA, MARKDOWN_SECTIONS = parse_markdown(SOURCE)
 
 FONT_REGULAR = "/System/Library/Fonts/Supplemental/Arial.ttf"
 FONT_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
@@ -163,22 +200,20 @@ identity.setStyle(TableStyle([
 ]))
 story.append(identity)
 story.append(Spacer(1, 2.5 * mm))
-story.append(p("Repository: <link href='https://github.com/timothyokooboh/advanced-database-portfolio' color='#008A8A'>github.com/timothyokooboh/advanced-database-portfolio</link>", small))
+repository = MARKDOWN_METADATA["repository"]
+story.append(p(f"Repository: <link href='{repository}' color='#008A8A'>{repository.removeprefix('https://')}</link>", small))
 
 story.append(p("Organisation and technical approach", h1))
-story.append(p(
-    "AsterMart is a simulated Nigerian multi-branch retailer with online ordering, branch pickup, delivery, electronic payment, and stock management. PostgreSQL is the transactional system of record. MongoDB supplies read-oriented product catalogue and event-timeline models. Docker Compose makes the work reproducible locally."
-))
+for paragraph in prose("Organisation and technical approach"):
+    story.append(p(paragraph))
 
 story.append(p("1. Database design and modelling", h2))
-story.append(p(
-    "The design defines ten normalized relations for branches, categories, products, inventory, customers, addresses, orders, order items, payments, and fulfilment. The ER model records cardinalities and keys; PostgreSQL constraints enforce natural identifiers, ownership, controlled statuses, positive values, and delivery-address rules. The schema is in 3NF, while order-line prices are intentional historical snapshots."
-))
+for paragraph in prose("1. Database design and modelling"):
+    story.append(p(paragraph))
 
 story.append(p("2. Query processing and optimisation", h2))
-story.append(p(
-    "A deterministic dataset contains 20,000 customers, 60,000 orders, 180,000 order items, and 60,000 payments. Five queries were executed with <b>EXPLAIN (ANALYZE, BUFFERS)</b> before and after workload-specific indexes. The largest measured improvement changed a 60,000-row branch-workload scan from 4.017 ms to a 0.034 ms index-only scan. Plans, results, buffers, index sizes, and trade-offs are retained in the repository."
-))
+for paragraph in prose("2. Query processing and optimisation"):
+    story.append(p(paragraph))
 
 metrics = Table([
     [p("EVIDENCE", small), p("BASELINE", small), p("OPTIMISED", small), p("OBSERVATION", small)],
@@ -202,19 +237,16 @@ story.append(PageBreak())
 # Page 2
 story.append(p("Practical implementation and advanced models", title))
 story.append(p("3. Transactions and concurrency", h2))
-story.append(p(
-    "The <b>place_order</b> function locks inventory rows in deterministic product order, validates stock, inserts the header and lines, and deducts inventory atomically. In a two-session test, both sessions requested four of five units. Session A committed; Session B waited about 1.8 seconds, observed the new balance of one, and rolled back with an insufficient-stock error. A separate rollback test restored an inventory value from 141 to 143."
-))
+for paragraph in prose("3. Transactions and concurrency"):
+    story.append(p(paragraph))
 
 story.append(p("4. NoSQL and advanced data models", h2))
-story.append(p(
-    "MongoDB stores 500 product catalogue documents with flexible category attributes and embedded branch availability, plus 5,000 append-oriented order events. Strict JSON Schema validators reject malformed documents. Indexes support SKU identity, category/price browsing, tags, branch availability, text search, and timelines. An explain run used <b>idx_category_price</b>, examining 32 keys and 32 documents for 32 results. PostgreSQL remains authoritative for checkout inventory."
-))
+for paragraph in prose("4. NoSQL and advanced data models"):
+    story.append(p(paragraph))
 
 story.append(p("5. Distributed and cloud database exercise", h2))
-story.append(p(
-    "Two PostgreSQL containers implement logical replication from an operational publisher to a reporting subscriber. Initial data and a later branch-summary change replicated successfully; publisher and subscriber values matched and <b>pg_stat_subscription</b> showed active receive/apply positions. A read-only reporting account could query the subscriber but its insert was rejected."
-))
+for paragraph in prose("5. Distributed and cloud database exercise"):
+    story.append(p(paragraph))
 
 flow = Table([
     [p("ORDER / INVENTORY WRITES", small), p("LOGICAL REPLICATION", small), p("REPORTING READS", small)],
@@ -232,17 +264,9 @@ flow.setStyle(TableStyle([
 ]))
 story.append(flow)
 story.append(Spacer(1, 2 * mm))
-story.append(p(
-    "The subscriber improves reporting isolation and read availability but is eventually consistent and is not automatic high availability. Production deployment should add multi-zone failover, encrypted private networking, secret management, monitored lag and retained WAL, backups with restore drills, and coordinated schema migrations. Branch-oriented sharding is proposed only after measured scale justifies its operational cost."
-))
 
 story.append(p("Verification highlights", h1))
-for text in [
-    "PostgreSQL and MongoDB run locally through Docker Compose with deterministic initialization.",
-    "Automated checks cover row counts, totals, constraints, indexes, rollback postconditions, document diversity, and replication.",
-    "Evidence files preserve query plans/results, concurrency output, validation output, and replication status.",
-    "The same AsterMart case study is used consistently across all five activities."
-]:
+for text in [line[2:] for line in MARKDOWN_SECTIONS["Verification highlights"] if line.startswith("- ")]:
     story.append(Paragraph(f"&bull; {text}", bullet))
 
 story.append(p("Repository evidence map", h1))
@@ -270,42 +294,18 @@ story.append(PageBreak())
 # Page 3
 story.append(p("Reflection, declaration and references", title))
 story.append(p("Individual technical reflection", h1))
-story.append(p(
-    "This portfolio showed me that advanced database design is not only about creating tables. Constraints and normalization establish correctness, but workload evidence determines useful indexes, and transaction boundaries determine whether a correct schema remains correct under concurrency. The first seed run failed because a temporary discounted order violated the total constraint; executing the scripts exposed this early. The scarce-stock test made row locks and isolation concrete because the second session waited and rechecked committed stock instead of overselling."
-))
-story.append(p(
-    "I also learned to choose models by access pattern. MongoDB simplified variable product attributes and event payloads, but duplicating availability creates a consistency boundary, so PostgreSQL must remain authoritative during checkout. Logical replication improved reporting isolation and read availability, yet it did not remove the need for backups, schema coordination, lag monitoring, or planned failover. My main lesson is that design claims should be supported by repeatable scripts, measured plans, negative tests, and documented limitations."
-))
+for paragraph in prose("Technical reflection"):
+    story.append(p(paragraph))
 
 story.append(p("AI use declaration", h1))
-story.append(p(
-    "OpenAI Codex assisted with milestone planning, drafts of code and documentation, testing ideas, and formatting. All scripts were executed locally; outputs and database states were inspected, and generated material was corrected when tests exposed problems. Official PostgreSQL and MongoDB documentation was used for technical claims. I remain responsible for reviewing, understanding, explaining, and submitting the work. The repository contains the full declaration."
-))
+for paragraph in prose("AI use declaration"):
+    story.append(p(paragraph))
 
 story.append(p("References", h1))
-refs = [
-    "PostgreSQL Global Development Group. <i>PostgreSQL 16 Documentation</i>. https://www.postgresql.org/docs/16/",
-    "PostgreSQL Global Development Group. <i>Logical Replication</i>. https://www.postgresql.org/docs/16/logical-replication.html",
-    "MongoDB, Inc. <i>Data Modeling</i>. https://www.mongodb.com/docs/manual/data-modeling/",
-    "MongoDB, Inc. <i>Schema Validation</i>. https://www.mongodb.com/docs/manual/core/schema-validation/",
-]
-for idx, ref in enumerate(refs, 1):
-    story.append(Paragraph(f"{idx}. {ref}", bullet))
-
-story.append(Spacer(1, 5 * mm))
-box = Table([[p(
-    "<b>Submission note:</b> The repository is private and must remain accessible to the assessor. The student should review this reflection and declaration in their own words before uploading the PDF through the LMS.",
-    body,
-)]], colWidths=[170 * mm])
-box.setStyle(TableStyle([
-    ("BACKGROUND", (0, 0), (-1, -1), PALE),
-    ("BOX", (0, 0), (-1, -1), 0.8, TEAL),
-    ("LEFTPADDING", (0, 0), (-1, -1), 9),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 9),
-    ("TOPPADDING", (0, 0), (-1, -1), 8),
-    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-]))
-story.append(box)
+for ref in MARKDOWN_SECTIONS["References"]:
+    match = re.match(r"(\d+)\.\s+(.*)", ref)
+    if match:
+        story.append(Paragraph(f"{match.group(1)}. {inline_markup(match.group(2))}", bullet))
 
 doc.build(story)
 print(OUTPUT)

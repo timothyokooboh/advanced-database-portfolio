@@ -67,7 +67,7 @@ Identifiers use database-generated numeric keys, while stable business identifie
 
 ## Advanced-database opportunities
 
-This scenario supports later portfolio activities without changing the case study:
+This scenario supports the advanced database activities used throughout the portfolio:
 
 - composite and partial indexes can be compared with sequential scans for order and inventory reports;
 - concurrent purchases of scarce stock can demonstrate lost updates, row locking, and transaction isolation;

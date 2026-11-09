@@ -81,7 +81,7 @@ Every non-key stored attribute therefore depends on the key, the whole key, and 
 
 `product.current_price` and `order_item.unit_price` are not duplicate representations of the same fact. The first is today's catalogue price; the second is the immutable price agreed for a particular order line. Keeping the snapshot prevents historical sales values from changing when the catalogue is updated.
 
-`order_item.line_total` and `sales_order.grand_total` are generated columns, not independently editable values. PostgreSQL derives them from their component values, preventing inconsistent arithmetic while making reporting clearer. The order `subtotal` is retained as an order-level financial snapshot and will be set from the order items inside the transaction workflow developed in Portfolio 3.
+`order_item.line_total` and `sales_order.grand_total` are generated columns, not independently editable values. PostgreSQL derives them from their component values, preventing inconsistent arithmetic while making reporting clearer. The order `subtotal` is retained as an order-level financial snapshot and is set from the order items by the transaction workflow in Portfolio 3.
 
 ## Integrity choices that need application or transaction logic
 
@@ -93,4 +93,4 @@ SQL constraints enforce row-level and referential rules, but some cross-row rule
 - only valid order-status transitions should be accepted;
 - only one default address per customer should be active.
 
-These rules are deliberately identified here rather than incorrectly represented as simple `CHECK` constraints. Later portfolios will implement and test the relevant transaction and indexing mechanisms.
+These rules are deliberately identified here rather than incorrectly represented as simple `CHECK` constraints. The relevant transaction and indexing mechanisms are implemented and tested in the corresponding portfolio activities.

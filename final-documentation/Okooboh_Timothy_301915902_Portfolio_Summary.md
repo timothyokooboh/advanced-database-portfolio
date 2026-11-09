@@ -7,25 +7,25 @@
 
 ## Organisation and technical approach
 
-AsterMart is a simulated Nigerian multi-branch retailer with online ordering, branch pickup, delivery, electronic payment, and stock management. PostgreSQL is the transactional system of record. MongoDB supplies read-oriented product catalogue and event-timeline models. Docker Compose makes the portfolio reproducible locally.
+AsterMart is a simulated Nigerian multi-branch retailer that includes online ordering, branch pickup, delivery, electronic payment, and stock management. PostgreSQL is the transactional system of record. MongoDB supports read-heavy product catalog and event-timeline patterns. Docker Compose makes the portfolio reproducible in a local environment.
 
 ## Portfolio activities
 
 ### 1. Database design and modelling
 
-The design defines ten normalized relations for branches, categories, products, inventory, customers, addresses, orders, order items, payments, and fulfilment. The ER model records cardinalities and keys; PostgreSQL constraints enforce natural identifiers, ownership, controlled statuses, positive values, and delivery-address rules. The schema is in 3NF, while order-line prices are intentional historical snapshots.
+The design defines 10 normalized relations for branches, categories, products, inventory, customers, addresses, orders, order items, payments and fulfillment. The ER model captures cardinalities and keys. PostgreSQL constraints ensure natural identifiers, ownership, controlled statuses, positive values and delivery-address rules. The schema is in 3NF and order-line prices are deliberate historical snapshots.
 
 ### 2. Query processing and optimisation
 
-A deterministic dataset contains 20,000 customers, 60,000 orders, 180,000 order items, and 60,000 payments. Five business queries were executed with `EXPLAIN (ANALYZE, BUFFERS)` before and after workload-specific indexes. The largest measured improvement changed a 60,000-row branch-workload scan from 4.017 ms to a 0.034 ms index-only scan. Plans, results, buffer counts, index sizes, and trade-offs are retained in the repository.
+The deterministic dataset includes 20,000 customers, 60,000 orders, 180,000 order items and 60,000 payments. Five business queries were run with `EXPLAIN (ANALYZE, BUFFERS)` before and after workload-specific indexes. The biggest measured improvement was a 60,000-row branch-workload scan going from 4.017 ms to a 0.034 ms index-only scan. The repository holds plans, results, buffer counts, index sizes, and trade-offs.
 
 ### 3. Transactions and concurrency
 
-The `place_order` function locks inventory rows in deterministic product order, validates stock, inserts the header and lines, and deducts inventory atomically. In a two-session test, both sessions requested four of five available units. Session A committed; Session B waited, observed the new balance of one, and rolled back with an insufficient-stock error. A separate rollback test restored an inventory value from 141 to 143.
+The `place_order` function locks inventory rows in deterministic product order, verifies stock, inserts header and lines and deducts inventory atomically. In a two session test, both sessions needed four out of five available units. Session A committed, Session B waited and saw the new balance of one, and rolled back with an insufficient-stock error. A separate rollback test returned an inventory value of 141 to 143.
 
 ### 4. NoSQL and advanced data models
 
-MongoDB stores 500 product catalogue documents with flexible category attributes and embedded branch availability, plus 5,000 append-oriented order events. Strict JSON Schema validators reject malformed documents. Indexes support SKU identity, category/price browsing, tags, branch availability, text search, and ordered timelines. An explain run used `idx_category_price`, examining 32 keys and 32 documents for 32 results.
+MongoDB: 500 product catalog documents with flexible category attributes and embedded branch availability and 5,000 append-only order events. Strict JSON Schema validators will fail malformed documents. Indexes support SKU identity, category/price browsing, tags, branch availability, text search, and ordered timelines. Explain run used `idx_category_price`, scanned 32 keys, 32 docs for 32 results.
 
 ### 5. Distributed and cloud database exercise
 
@@ -42,11 +42,11 @@ I also learned to choose models by access pattern. MongoDB simplified variable p
 - PostgreSQL and MongoDB services run locally through Docker Compose.
 - Automated tests validated row counts, financial totals, schema rules, indexes, rollback postconditions, and NoSQL document diversity.
 - Evidence files preserve query results, plans, concurrency output, validation output, and replication status.
-- The repository uses one case study consistently and contains focused progressive commits.
+- The repository uses one case study consistently and preserves reproducible implementation evidence.
 
 ## AI use declaration
 
-OpenAI Codex assisted with milestone planning, drafts of code/documentation, testing ideas, and formatting. All scripts were executed locally; outputs and database states were inspected, and generated material was corrected when tests exposed problems. Official documentation was used for technical claims. I remain responsible for reviewing, understanding, explaining, and submitting the work. The full declaration is included in the repository.
+OpenAI Codex assisted with requirements organisation, drafts of code/documentation, testing ideas, and formatting. I executed all scripts locally and inspected database states. I consulted official documentation for technical claims. I remain responsible for reviewing, understanding, explaining, and submitting the work. The full declaration is included in the repository.
 
 ## References
 
